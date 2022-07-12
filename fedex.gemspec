@@ -39,6 +39,7 @@ Gem::Specification.new do |spec|
   # Dependencies
   spec.add_dependency 'httparty', '~> 0.13.7'
   spec.add_dependency 'nokogiri', '~> 1.6', '>= 1.6.8'
+  spec.add_dependency 'nori', '~> 2.6'
 
   # Development Dependencies
   spec.add_development_dependency "bundler", "~> 1.17"

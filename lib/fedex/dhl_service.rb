@@ -66,13 +66,27 @@ class DhlService
   end
 
   def self.map_response(data)
-    severity = data['RateReply']['HighestSeverity']
-    code = data['RateReply']['Code']
+    root = data['res:DCTResponse']['GetQuoteResponse']
+    qtd_shp_ex_chrg = root['BkgDetails']['QtdShp']['QtdShpExChrg']
 
-    print data
-    {
-      # TODO: Map data
+    data = []
+
+    qtd_shp_ex_chrg.each { |item|
+      price = item['ChargeValue']
+      currency_code = item['CurrencyCode']
+      service_level_name = item['GlobalServiceName']
+      service_level_token = item['LocalServiceTypeName']
+      data.push({
+                  price: price.to_f,
+          currency: currency_code,
+          service_level: {
+            name: service_level_name,
+            token: service_level_token
+          }
+        })
     }
+
+    return data
   end
 
   def self.get(credentials, quote_params)

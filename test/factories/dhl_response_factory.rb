@@ -1,9 +1,9 @@
 require 'nokogiri'
+require 'nori'
 
 class DhlResponseFactory
   def self.createResponse
-    Nokogiri::XML("
-                  <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+    xml = Nokogiri::XML("
 <res:DCTResponse xmlns:res='http://www.dhl.com' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation= 'http://www.dhl.com DCT-Response.xsd'>
     <GetQuoteResponse>
         <Response>
@@ -243,6 +243,8 @@ class DhlResponseFactory
     </GetQuoteResponse>
 </res:DCTResponse>
 <!-- ServiceInvocationId:20220712045719_52d4_01525ed4-7793-470a-881a-4480b4633ea1 -->
-    ")
+    ").to_xml
+
+    Nori.new.parse(xml)
   end
 end

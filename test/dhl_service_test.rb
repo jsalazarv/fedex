@@ -2,6 +2,8 @@ require 'minitest/autorun'
 require 'nokogiri'
 require 'fedex/dhl_service'
 require 'factories/dhl_response_factory'
+require 'set'
+
 
 class DhlServiceTest < Minitest::Test
   def test_build_the_expected_dhl_xml_body
@@ -61,30 +63,33 @@ DCT-req.xsd\">
   </GetQuote>
 </p:DCTRequest>
 ")
-
-    print expected_xml
     assert_equal(expected_xml.to_s, xml.to_s)
   end
 
   def test_map_response
     response = DhlService::map_response(DhlResponseFactory.createResponse())
-    assert_equal(response, [
+
+    assert_equal(2, response.length)
+
+    expected_response = [
       {
-        "price": 218.05,
-        "currency": "mxn",
-        "service_level": {
-          "name": "Standard Overnight",
-          "token": "STANDARD_OVERNIGHT"
+        price: 157.55,
+        currency: "MXN",
+        service_level: {
+          name: "REMOTE AREA DELIVERY",
+          token: "REMOTE AREA DELIVERY"
         }
       },
       {
-        "price": 139.08,
-        "currency": "MXM",
-        "service_level": {
-          "name": "Fedex Express Saver",
-          "token": "FEDEX_EXPRESS_SAVER"
+        price: 63.06,
+        currency: "MXN",
+        service_level: {
+          name: "FUEL SURCHARGE",
+          token: "FUEL SURCHARGE"
         }
       }
-    ])
+    ]
+
+    assert_equal(expected_response, response)
   end
 end
