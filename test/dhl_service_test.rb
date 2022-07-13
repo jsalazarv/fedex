@@ -7,8 +7,33 @@ require 'set'
 
 class DhlServiceTest < Minitest::Test
   def test_build_the_expected_dhl_xml_body
-    credentials = {}
-    quote_params = {}
+    credentials = {
+      key: 'DServiceVal',
+      password: 'testServVal'
+    }
+    quote_params = {
+      address_from: {
+        zip: "64000",
+        country: "MX"
+      },
+      address_to: {
+        zip: "64000",
+        country: "MX"
+      },
+      parcel: {
+        length: 25.0,
+        width: 28.0,
+        height: 46.0,
+        distance_unit: "CM",
+        weight: 6.5,
+        mass_unit: "KG"
+      }
+    }
+
+    date = Time.new
+    date_format = date.strftime("%Y-%m-%d")
+
+
     xml = DhlService.build_xml(credentials, quote_params)
 
     expected_xml = Nokogiri::XML("<?xml version=\"1.0\"?>
@@ -19,47 +44,36 @@ DCT-req.xsd\">
   <GetQuote>
     <Request>
       <ServiceHeader>
-        <MessageTime>2019-01-31T14:52:00-06:00</MessageTime>
         <MessageReference>7563573320563005740683078845</MessageReference>
-        <SiteID>DServiceVal</SiteID>
-        <Password>testServVal</Password>
+        <SiteID>#{credentials[:key]}</SiteID>
+        <Password>#{credentials[:password]}</Password>
       </ServiceHeader>
     </Request>
     <From>
-      <CountryCode>MX</CountryCode>
-      <Postalcode>15700</Postalcode>
-      <City>MEXICO DF</City>
+      <CountryCode>#{quote_params[:address_from][:country]}</CountryCode>
+      <Postalcode>#{quote_params[:address_from][:zip]}</Postalcode>
     </From>
     <BkgDetails>
-      <PaymentCountryCode>MX</PaymentCountryCode>
-      <Date>2022-02-08</Date>
+      <PaymentCountryCode>#{quote_params[:address_from][:country]}</PaymentCountryCode>
+      <Date>#{date_format}</Date>
       <ReadyTime>PT14H52M</ReadyTime>
-      <DimensionUnit>CM</DimensionUnit>
-      <WeightUnit>KG</WeightUnit>
+      <DimensionUnit>#{quote_params[:parcel][:distance_unit]}</DimensionUnit>
+      <WeightUnit>#{quote_params[:parcel][:mass_unit]}</WeightUnit>
       <NumberOfPieces>1</NumberOfPieces>
       <Pieces>
         <Piece>
           <PieceID>1</PieceID>
-          <Height>1</Height>
-          <Depth>1</Depth>
-          <Width>1</Width>
-          <Weight>10.0</Weight>
+          <Height>#{quote_params[:parcel][:height]}</Height>
+          <Depth>#{quote_params[:parcel][:length]}</Depth>
+          <Width>#{quote_params[:parcel][:width]}</Width>
+          <Weight>#{quote_params[:parcel][:weight]}</Weight>
         </Piece>
       </Pieces>
-      <IsDutiable>N</IsDutiable>
-      <QtdShp>
-        <GlobalProductCode>N</GlobalProductCode>
-      </QtdShp>
     </BkgDetails>
     <To>
-      <CountryCode>MX</CountryCode>
-      <Postalcode>40831</Postalcode>
-      <City>MEXICO DF</City>
+      <CountryCode>#{quote_params[:address_to][:country]}</CountryCode>
+      <Postalcode>#{quote_params[:address_to][:zip]}</Postalcode>
     </To>
-    <Dutiable>
-      <DeclaredCurrency>MXN</DeclaredCurrency>
-      <DeclaredValue>0.0</DeclaredValue>
-    </Dutiable>
   </GetQuote>
 </p:DCTRequest>
 ")
@@ -69,7 +83,7 @@ DCT-req.xsd\">
   def test_map_response
     response = DhlService::map_response(DhlResponseFactory.createResponse())
 
-    assert_equal(2, response.length)
+    assert_equal(4, response.length)
 
     expected_response = [
       {
@@ -81,15 +95,36 @@ DCT-req.xsd\">
         }
       },
       {
-        price: 63.06,
+        price: 111.31,
         currency: "MXN",
         service_level: {
           name: "FUEL SURCHARGE",
           token: "FUEL SURCHARGE"
         }
+      },
+      {
+        price: 157.55,
+        currency: "MXN",
+        service_level: {
+          name: "REMOTE AREA DELIVERY",
+          token: "REMOTE AREA DELIVERY"
+        }
+      },
+      {
+        price: 23.48,
+        currency: "MXN",
+        service_level:
+          {
+            name: "FUEL SURCHARGE",
+            token: "FUEL SURCHARGE"
+          }
       }
     ]
 
     assert_equal(expected_response, response)
+  end
+
+  def test_get
+
   end
 end
